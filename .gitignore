@@ -54,3 +54,7 @@ crash_dump_*.dmp
 # local helpers
 .DS_Store
 *.swp
+
+# release zips (tools/release/make_release.sh)
+/dist/
+.venv/

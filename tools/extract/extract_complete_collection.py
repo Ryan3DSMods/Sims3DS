@@ -1,10 +1,20 @@
 #!/usr/bin/env python3
 # This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
 # distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
-"""Extract the game data of YOUR OWN copy of The Sims Complete Collection (USA, 4 discs) into the folder layout
-sims3ds expects on the SD card (sdmc:/3ds/sims/).
+"""Extract the game data of YOUR OWN copy of The Sims Complete Collection into the folder layout sims3ds expects on
+the SD card (sdmc:/3ds/sims/). Players normally start it through extract.command (macOS), extract.bat (Windows) or
+extract.sh (Linux), which install the Python helpers and then run this script.
 
-    python3 extract_complete_collection.py --discs <dir with your disc images> --out <output dir>
+    python3 extract_complete_collection.py [SOURCE] [--out <dir>]
+
+SOURCE is either
+    * a folder with images of YOUR OWN discs (see below), or
+    * YOUR OWN installed game folder (e.g. C:\\Program Files (x86)\\Maxis\\The Sims) - just copied, no extra tools needed.
+Without SOURCE the script asks for it (you can drag the folder into the window). --discs DIR is the old spelling.
+
+--out defaults to the 3ds/sims/ folder of the unpacked release zip (when the script runs from its extractor/ folder),
+otherwise to ./Sims3DS-SD/3ds/sims. Afterwards the EA intro is converted for the 3DS when ffmpeg is installed
+(src/app/tools/convert_intro.py -> <out>/cache/intro.stv + intro.wav); without ffmpeg that step is skipped.
 
 Accepted disc inputs (in --discs, any mix, one per disc; the disc number is taken from "(Disc N)" / "disc N" in the
 name, otherwise from the sorted order):
@@ -32,11 +42,12 @@ Pipeline
          every Template* group keep their names.  Creator_Files only with --with-creator.  Everything else
          (installer, executables, copy protection, localisation templates) is skipped and listed.
 
-Alternative without discs: copy the install folder of a full PC installation (The Sims + all expansions) instead,
-see README.md "Option B".
+Installed game instead of discs: the folders GameData, UserData*, ExpansionPack*, ExpansionShared, Deluxe,
+Downloads, UIGraphics, Music, SoundData and Template* are copied (never Saves).
 
-unshield: macOS `brew install unshield`; Debian/Ubuntu `sudo apt install unshield`; Arch `pacman -S unshield`;
-Windows: use WSL (Ubuntu) or build it from source (cmake + zlib). Pass --unshield PATH if it is not on PATH.
+unshield (discs only): macOS `brew install unshield` (offered automatically); Debian/Ubuntu `sudo apt install
+unshield`; Fedora `sudo dnf install unshield`; Arch `sudo pacman -S unshield`; Windows: install the game from your
+discs and use the installed folder, or use WSL (Ubuntu). Pass --unshield PATH if it is not on PATH.
 
 Disk space: about 3 GB for the output plus up to ~1.6 GB of temporary files (one disc image at a time + the
 cabinet files). Temporary files go to --work (default: <out>/../sims3ds_extract_work) and are removed at the end
@@ -311,28 +322,218 @@ def check(out):
     return True
 
 
+# ------------------------------------------------------------------------------------------------ installed game
+# folders of a PC install that sims3ds reads (case-insensitive); every Template* folder is copied too
+INSTALL_DIRS = ['GameData', 'UserData', 'UserData2', 'UserData3', 'UserData4', 'UserData5', 'UserData6', 'UserData7',
+                'UserData8', 'ExpansionPack', 'ExpansionPack2', 'ExpansionPack3', 'ExpansionPack4', 'ExpansionPack5',
+                'ExpansionPack6', 'ExpansionPack7', 'ExpansionShared', 'Deluxe', 'Downloads', 'UIGraphics', 'Music',
+                'SoundData']
+
+
+def is_install(d):
+    try:
+        names = {n.lower() for n in os.listdir(d) if os.path.isdir(os.path.join(d, n))}
+    except OSError:
+        return False
+    return 'gamedata' in names and 'userdata' in names
+
+
+def find_install(d):
+    """d itself, or a game folder up to two levels below it (e.g. the 'Maxis' folder was picked)."""
+    if is_install(d):
+        return d
+    for root, dirs, _files in os.walk(d):
+        if root[len(d):].count(os.sep) >= 2:
+            dirs[:] = []
+            continue
+        for n in sorted(dirs):
+            if is_install(os.path.join(root, n)):
+                return os.path.join(root, n)
+    return None
+
+
+def install_plan(src):
+    want = {n.lower(): n for n in INSTALL_DIRS}
+    plan = []
+    for n in sorted(os.listdir(src)):
+        p = os.path.join(src, n)
+        if not os.path.isdir(p):
+            continue
+        if n.lower() in want:
+            plan.append((p, want[n.lower()]))
+        elif n.lower().startswith('template'):
+            plan.append((p, n))
+    return plan
+
+
+def copy_install(src, out):
+    for p, target in install_plan(src):
+        log('copying %-18s -> %s/' % (os.path.basename(p), target))
+        shutil.copytree(p, os.path.join(out, target), dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns('Saves', '*.exe', '*.dll', 'Thumbs.db', '.DS_Store'))
+
+
+# ------------------------------------------------------------------------------------------------ helpers
+def clean_path(text):
+    """A path typed or dragged into a terminal: strip quotes and shell escapes (a backslash before a space)."""
+    t = text.strip()
+    if len(t) >= 2 and t[0] == t[-1] and t[0] in '"\'':
+        t = t[1:-1]
+    elif os.name != 'nt':
+        t = re.sub(r'\\(.)', r'\1', t)
+    return os.path.expanduser(t.strip())
+
+
+def ask_source():
+    print()
+    print('Which folder holds YOUR OWN copy of The Sims Complete Collection?')
+    print('  - a folder with images of your own discs (.iso / .bin / .7z), or')
+    print('  - your installed game folder (for example C:\\Program Files (x86)\\Maxis\\The Sims)')
+    print('Drag the folder into this window (or type its path) and press Enter:')
+    try:
+        return clean_path(input('> '))
+    except EOFError:
+        return ''
+
+
+def default_out():
+    here = os.path.dirname(os.path.abspath(__file__))
+    release_sims = os.path.join(os.path.dirname(here), '3ds', 'sims')
+    if os.path.isdir(release_sims):                                  # running from the release zip's extractor/
+        return release_sims
+    return os.path.join(os.getcwd(), 'Sims3DS-SD', '3ds', 'sims')
+
+
+def unshield_help():
+    if sys.platform == 'darwin':
+        return 'install it with Homebrew (https://brew.sh):  brew install unshield'
+    if os.name == 'nt':
+        return ('unshield is not available as a simple Windows download. Easiest: install The Sims from your discs '
+                'on this PC, then run the extractor again and pick the installed game folder (no unshield needed). '
+                'Or use WSL (Ubuntu): sudo apt install unshield, then run extract.sh there.')
+    return ('install it with your package manager:  sudo apt install unshield  (Debian/Ubuntu)  |  '
+            'sudo dnf install unshield  (Fedora)  |  sudo pacman -S unshield  (Arch)')
+
+
+def find_unshield(given, interactive):
+    if given and os.path.exists(given):
+        return given
+    u = shutil.which('unshield')
+    if u:
+        return u
+    brew = shutil.which('brew')
+    if sys.platform == 'darwin' and brew and interactive:
+        ans = input('unshield is needed to unpack the discs. Install it now with Homebrew? [Y/n] ').strip().lower()
+        if ans in ('', 'y', 'yes'):
+            subprocess.run([brew, 'install', 'unshield'])
+            u = shutil.which('unshield') or next((p for p in ('/opt/homebrew/bin/unshield', '/usr/local/bin/unshield')
+                                                   if os.path.exists(p)), None)
+            if u:
+                return u
+    sys.exit('\nThe tool "unshield" is needed for disc images but was not found.\n-> ' + unshield_help() +
+             '\nThen run the extractor again.')
+
+
+def find_convert_intro():
+    here = os.path.dirname(os.path.abspath(__file__))
+    for c in (os.path.join(here, 'convert_intro.py'),
+              os.path.join(here, '..', '..', 'src', 'app', 'tools', 'convert_intro.py')):
+        if os.path.exists(c):
+            return os.path.abspath(c)
+    return None
+
+
+def find_ci(root, rel):
+    cur = root
+    for part in rel.split('/'):
+        names = {n.lower(): n for n in os.listdir(cur)} if os.path.isdir(cur) else {}
+        if part.lower() not in names:
+            return None
+        cur = os.path.join(cur, names[part.lower()])
+    return cur
+
+
+def convert_intro(out):
+    """EA intro -> <out>/cache/intro.stv + intro.wav, only when ffmpeg is installed (silently skipped otherwise)."""
+    avi = find_ci(out, 'Music/eag_us.avi')
+    script = find_convert_intro()
+    if not avi or not script or not shutil.which('ffmpeg'):
+        return
+    cache = os.path.join(out, 'cache')
+    os.makedirs(cache, exist_ok=True)
+    log('converting the intro video (ffmpeg)')
+    r = subprocess.run([sys.executable, script, avi, os.path.join(cache, 'intro.stv')])
+    if r.returncode != 0:
+        log('intro conversion failed - the game simply starts at the loading screen')
+
+
 # ------------------------------------------------------------------------------------------------ main
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--discs', required=True, help='folder with your disc images (.7z/.bin/.iso/.mdf) or disc folders')
-    ap.add_argument('--out', required=True, help='output folder (its contents go to sdmc:/3ds/sims/)')
+    ap.add_argument('source', nargs='?', help='your disc images folder, or your installed The Sims folder')
+    ap.add_argument('--discs', help='same as SOURCE (older spelling)')
+    ap.add_argument('--out', help='output folder = sdmc:/3ds/sims/ (default: the release zip\'s 3ds/sims, '
+                                  'else ./Sims3DS-SD/3ds/sims)')
     ap.add_argument('--work', help='temporary folder (default: next to --out)')
-    ap.add_argument('--unshield', default=shutil.which('unshield'), help='path to the unshield binary')
+    ap.add_argument('--unshield', help='path to the unshield binary (disc images only)')
     ap.add_argument('--with-creator', action='store_true', help='also extract Creator_Files (not used by sims3ds)')
     ap.add_argument('--keep-work', action='store_true', help='keep the temporary files')
+    ap.add_argument('--no-intro', action='store_true', help='do not convert the intro video even if ffmpeg exists')
+    ap.add_argument('--dry-run', action='store_true', help='only show what would be done')
     a = ap.parse_args()
 
-    if not a.unshield or not os.path.exists(a.unshield):
-        sys.exit('unshield not found: install it (brew/apt install unshield) or pass --unshield /path/to/unshield')
-    out = os.path.abspath(a.out)
+    interactive = sys.stdin.isatty()
+    src = clean_path(a.source or a.discs or '') if (a.source or a.discs) else ask_source()
+    if not src:
+        sys.exit('No folder given.')
+    if os.path.isfile(src):                                           # a single image was dropped: use its folder
+        src = os.path.dirname(os.path.abspath(src))
+    if not os.path.isdir(src):
+        sys.exit('Folder not found: ' + src)
+    src = os.path.abspath(src)
+    out = os.path.abspath(clean_path(a.out) if a.out else default_out())
+    install = find_install(src)
+    discs = [] if install else find_discs(src)
+    if not install and not discs:
+        sys.exit('No disc images (.iso/.bin/.7z/.mdf) and no installed game (GameData + UserData folders) found in\n  '
+                 + src)
+
+    log('source:', install or src, '(installed game)' if install else '(%d disc image(s))' % len(discs))
+    log('output:', out)
+    log('intro :', 'skipped (--no-intro)' if a.no_intro else
+        ('yes (ffmpeg found)' if shutil.which('ffmpeg') else 'skipped (ffmpeg not installed)'))
+    if a.dry_run:
+        if install:
+            for p, target in install_plan(install):
+                log('would copy %s -> %s/' % (os.path.basename(p), target))
+        else:
+            for num, p in discs:
+                log('would read disc %d: %s' % (num, os.path.basename(p)))
+            log('unshield:', shutil.which('unshield') or a.unshield or 'NOT FOUND - ' + unshield_help())
+        return
+
+    os.makedirs(out, exist_ok=True)
+    if install:
+        copy_install(install, out)
+    else:
+        extract_discs(a, discs, out, find_unshield(a.unshield, interactive))
+    ok = check(out)
+    if not a.no_intro:
+        convert_intro(out)
+    log('done ->', out)
+    if ok:
+        print('\nAll set. Copy the folder "3ds" that contains this "sims" folder to the root of your SD card\n'
+              '(together with the release zip\'s "cia" folder), then install cia/sims.cia with FBI.')
+    else:
+        print('\nSome key game files are missing (see MISSING above). Check that you picked the right folder:\n'
+              'all disc images of YOUR OWN Complete Collection, or a complete installed game.')
+    sys.exit(0 if ok else 1)
+
+
+def extract_discs(a, discs, out, unshield):
     work = os.path.abspath(a.work or os.path.join(os.path.dirname(out), 'sims3ds_extract_work'))
     cabdir, groups_dir = os.path.join(work, 'cab'), os.path.join(work, 'groups')
     os.makedirs(cabdir, exist_ok=True)
-    os.makedirs(out, exist_ok=True)
-
-    discs = find_discs(a.discs)
-    if not discs:
-        sys.exit('no disc images found in ' + a.discs)
     for num, src in discs:
         log('disc %d: %s' % (num, os.path.basename(src)))
         tmp = os.path.join(work, 'disc%d' % num)
@@ -355,7 +556,7 @@ def main():
     if os.path.isdir(groups_dir):
         shutil.rmtree(groups_dir)
     log('unshield: extracting all file groups (this takes a few minutes)')
-    r = subprocess.run([a.unshield, '-d', groups_dir, 'x', os.path.join(cabdir, 'data1.hdr')],
+    r = subprocess.run([unshield, '-d', groups_dir, 'x', os.path.join(cabdir, 'data1.hdr')],
                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors='replace')
     tail = r.stdout.strip().splitlines()[-3:]
     for line in tail:
@@ -364,12 +565,8 @@ def main():
         sys.exit('unshield failed (exit %d); are all data*.cab files present?' % r.returncode)
 
     layout(groups_dir, out, a.with_creator)
-    ok = check(out)
     if not a.keep_work:
         shutil.rmtree(work, ignore_errors=True)
-    log('done ->', out)
-    log('copy the CONTENTS of this folder to sdmc:/3ds/sims/ (next to sims.3dsx), see README.md')
-    sys.exit(0 if ok else 1)
 
 
 if __name__ == '__main__':

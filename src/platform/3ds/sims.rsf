@@ -1,4 +1,4 @@
-# makerom RSF for `make cia` — runs sims as an installed title in the New 3DS extended memory mode.
+# makerom RSF for `make cia` — runs sims as an installed title in the New 3DS extended memory mode (CIA_MEM).
 BasicInfo:
   Title                   : "sims3ds"
   ProductCode             : "CTR-H-STN3"
@@ -44,6 +44,7 @@ AccessControlInfo:
   SpecialMemoryArrange          : true
   MemoryType                    : Application
   # Old 3DS: 64 MB application region; New 3DS: 124 MB (178 MB starves the HOME menu: it crashed with an out-of-resource ErrDisp)
+  # `make cia CIA_MEM=96` rewrites the next two lines (96MB / Legacy) into build/sims_cia.rsf; see the Makefile
   SystemMode                    : 64MB
   SystemModeExt                 : 124MB
   CpuSpeed                      : 804MHz

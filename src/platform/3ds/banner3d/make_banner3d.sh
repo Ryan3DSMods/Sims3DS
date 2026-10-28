@@ -78,7 +78,8 @@ fi
 
 # 4. banner (CBMD + CWAV; bannertool LZ11-compresses the CGFX) and SMDH with the extendedbanner flag
 # banner sound: your own banner_sound.wav (<= 3 s, 44.1 kHz 16-bit stereo; none is included); silence if missing
-AUDIO="$HERE/banner_sound.wav"
+# BANNER_AUDIO=<wav> overrides it (`make release` passes banner_silence.wav so no game audio is ever published)
+AUDIO="${BANNER_AUDIO:-$HERE/banner_sound.wav}"
 [ -f "$AUDIO" ] || AUDIO="$HERE/banner_silence.wav"
 bannertool makebanner -ci "$OUT/banner3d.cgfx" -a "$AUDIO" -o "$OUT/banner.bnr"
 bannertool makesmdh -s "sims3ds" -l "Sims 1 3DS (unofficial) - needs your own game data" -p "sims3ds contributors" \

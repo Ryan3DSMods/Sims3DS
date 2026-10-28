@@ -4,7 +4,8 @@
 #   source /etc/profile.d/devkit-env.sh
 #   cd src/platform/3ds && make         # -> sims.3dsx (+ .smdh)
 #   make cia                            # optional: sims.cia (needs makerom + bannertool in PATH),
-#                                       # runs in the New 3DS 178 MB extended memory mode (sims.rsf)
+#                                       # New 3DS memory mode from CIA_MEM (124 or 96 MB, see below)
+#   make release VERSION=1.0            # sims.3dsx + sims.cia -> ../../../dist/Sims3DS-1.0.zip (docs/RELEASING.md)
 # Copy sims.3dsx to sdmc:/3ds/sims/ next to the game data (see src/app/README.md).
 #
 # Builds the whole engine: src/files src/simantics src/content src/world src/vitaboy src/common, the shared
@@ -84,17 +85,51 @@ clean:
 # Neutral art instead: make cia BANNER3D=0 ICON=$PWD/neutral/icon.png BANNER_PNG=$PWD/neutral/banner.png
 # Banner audio: banner3d/banner_sound.wav if you exported one from YOUR OWN game data
 # (tools/banner3d/export_game_sound.sh, <= 3 s 44.1 kHz 16-bit stereo), else banner3d/banner_silence.wav.
-BANNER3D ?= 1
+# Banner audio override (a .wav path). `make release` forces the silent one so no game audio ends up in a published CIA.
+#
+# CIA_MEM: the New 3DS application memory mode written into the CIA (sims.rsf is patched into build/sims_cia.rsf):
+#   124 -> SystemMode 64MB, SystemModeExt 124MB   (default; hardware-tested)
+#   96  -> SystemMode 96MB, SystemModeExt Legacy  (more memory left to the HOME Menu)
+# Pressing HOME in-game with the 3D banner crashed the HOME Menu in BOTH modes (docs/TESTING.md), so 124 stays default.
+# (178 MB was tried earlier and crashed the HOME Menu.) The .3dsx is not affected: it gets what the launcher gives it.
+BANNER3D    ?= 1
+BANNER_AUDIO ?=
+CIA_MEM     ?= 124
+ifeq ($(CIA_MEM),124)
+CIA_SYSMODE    := 64MB
+CIA_SYSMODEEXT := 124MB
+else ifeq ($(CIA_MEM),96)
+CIA_SYSMODE    := 96MB
+CIA_SYSMODEEXT := Legacy
+else
+$(error CIA_MEM must be 124 or 96 (got '$(CIA_MEM)'))
+endif
+# release: version for the zip name (default: the git tag/commit, e.g. v1.0 -> 1.0)
+VERSION ?= $(shell git -C $(TOPDIR) describe --tags --always --dirty 2>/dev/null | sed 's/^v//')
+.PHONY: release
 cia: $(BUILD)
-	@if [ "$(BANNER3D)" != "0" ] && ICON_PNG=$(ICON) bash $(TOPDIR)/banner3d/make_banner3d.sh $(BUILD); then \
+	@sed -e 's/^\(  SystemMode  *: \).*/\1$(CIA_SYSMODE)/' -e 's/^\(  SystemModeExt  *: \).*/\1$(CIA_SYSMODEEXT)/' \
+		$(TOPDIR)/sims.rsf > $(BUILD)/sims_cia.rsf
+	@grep -q '^  SystemMode  *: $(CIA_SYSMODE)$$' $(BUILD)/sims_cia.rsf && grep -q '^  SystemModeExt  *: $(CIA_SYSMODEEXT)$$' $(BUILD)/sims_cia.rsf \
+		|| { echo "cia: could not set the memory mode in build/sims_cia.rsf"; exit 1; }
+	@echo "cia: memory mode CIA_MEM=$(CIA_MEM) (SystemMode $(CIA_SYSMODE), SystemModeExt $(CIA_SYSMODEEXT))"
+	@if [ "$(BANNER3D)" != "0" ] && BANNER_AUDIO="$(BANNER_AUDIO)" ICON_PNG=$(ICON) bash $(TOPDIR)/banner3d/make_banner3d.sh $(BUILD); then \
 		echo "cia: using the 3D banner"; SMDH=$(BUILD)/sims_cia.smdh; \
 	else \
 		[ "$(BANNER3D)" != "0" ] && echo "cia: 3D banner step failed - falling back to the flat banner.png"; \
-		AUDIO=$(TOPDIR)/banner3d/banner_sound.wav; [ -f "$$AUDIO" ] || AUDIO=$(TOPDIR)/banner3d/banner_silence.wav; \
+		AUDIO="$(BANNER_AUDIO)"; [ -n "$$AUDIO" ] || AUDIO=$(TOPDIR)/banner3d/banner_sound.wav; \
+		[ -f "$$AUDIO" ] || AUDIO=$(TOPDIR)/banner3d/banner_silence.wav; \
 		bannertool makebanner -i $(BANNER_PNG) -a $$AUDIO -o $(BUILD)/banner.bnr || exit 1; \
 		SMDH=$(TARGET).smdh; \
 	fi; \
-	makerom -f cia -o $(TARGET).cia -elf $(TARGET).elf -rsf $(TOPDIR)/sims.rsf -icon $$SMDH -banner $(BUILD)/banner.bnr -exefslogo -target t
+	makerom -f cia -o $(TARGET).cia -elf $(TARGET).elf -rsf $(BUILD)/sims_cia.rsf -icon $$SMDH -banner $(BUILD)/banner.bnr -exefslogo -target t
+# Prebuilt release zip for players (docs/RELEASING.md): builds the .3dsx and the .cia (3D banner, flat fallback,
+# always the silent banner sound) and packs dist/Sims3DS-<VERSION>.zip with tools/release/make_release.sh.
+release:
+	@[ -n "$(VERSION)" ] || { echo "release: set VERSION=1.0 (or tag the commit)"; exit 1; }
+	@$(MAKE) --no-print-directory cia BANNER_AUDIO=$(TOPDIR)/banner3d/banner_silence.wav CIA_MEM=$(CIA_MEM) BANNER3D=$(BANNER3D)
+	@bash $(TOPDIR)/../../../tools/release/make_release.sh --package-only --version "$(VERSION)" \
+		--3dsx $(TOPDIR)/$(TARGET).3dsx --cia $(TOPDIR)/$(TARGET).cia --cia-mem $(CIA_MEM)
 else
 DEPENDS := $(OFILES:.o=.d)
 $(OUTPUT).3dsx : $(OUTPUT).elf $(OUTPUT).smdh

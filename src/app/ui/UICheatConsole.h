@@ -9,7 +9,7 @@
 //
 // Syntax as in The Sims: cheats separated by ';', '!' repeats the previous cheat ("rosebud;!;!;!" = 4 x 1,000).
 // Unknown text does nothing and prints nothing (the original's behaviour); a few cheats print a line.
-// The cheat list and what each does in this port: README.md "Cheats".
+// The cheat list and what each does in this port: docs/CHEATS.md.
 #pragma once
 #include <deque>
 #include <string>

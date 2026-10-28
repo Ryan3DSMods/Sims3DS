@@ -13,6 +13,11 @@ HOME Menu (now 124 MB), interrupted saves (atomic save + recovery), a pet-only f
 
 Not yet exercised on the console: every expansion town feature in depth, very long sessions on one lot, the Old 3DS.
 
+Open hardware issue: **pressing HOME while the game is running can crash the HOME Menu** (with the 3D banner). It
+happened once in the 124 MB mode; a test build in the 96 MB mode (`make cia CIA_MEM=96`) crashed the same way, so the
+memory mode is not the cause and the CIA stays at 124 MB. Workaround: close the game with START → Quit. Being
+investigated.
+
 ## On the PC build of the same code (`Makefile.port`)
 
 Each release candidate is checked from clean builds, an empty save area and an empty cache:
@@ -35,7 +40,7 @@ Each release candidate is checked from clean builds, an empty save area and an e
 | Every source file compiled with the 3DS CPU flags (`tools/arm_check/arm_check.sh`) | pass |
 | Save safety: a scenario cut at every step (power-cut simulation) and started again — no lost or broken saves | pass |
 
-Known open issues are listed in the README ("Status and known limitations").
+Known open issues are listed in [FEATURES.md](FEATURES.md#known-limitations-full-list).
 
 ## Repeat it yourself
 
