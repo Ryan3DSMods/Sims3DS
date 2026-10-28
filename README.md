@@ -9,6 +9,28 @@ the console: no streaming, no PC needed while you play.
 > **Unofficial fan project.** Not affiliated with, endorsed by or sponsored by Electronic Arts Inc. or Maxis.
 > "The Sims" is a trademark of Electronic Arts Inc. See [Legal](#legal).
 
+## Top features
+
+- **The whole Complete Collection**: the base game plus all 7 expansion packs — Livin' Large, House Party, Hot Date,
+  Vacation, Unleashed, Superstar and Makin' Magic.
+- **Every place to visit**: all neighbourhoods, plus trips by phone or cab to Downtown, Vacation Island, Old Town,
+  Studio Town and Magic Town and back home.
+- **The real game, not a remake**: your Sims follow the original game's own scripts, so needs, moods, jobs, skills,
+  friendships, pets, careers and even kitchen fires work as they did on the PC.
+- **Create-A-Sim and Create-A-Family**: heads, bodies, outfits, personality and zodiac sign, adults and children.
+- **Live, Buy and Build mode**: pie menus, the action queue and the game's own catalogues; walls, floors, wallpaper,
+  doors, windows, pools, roofs and terrain.
+- **Made for two screens**: the house on the top screen; a touch view of the lot, the menus, needs and catalogue on
+  the bottom screen. Play with the stylus or the circle pad and buttons.
+- **Original sound**: the game's music, radio stations, sound effects and the classic purchase "ka-ching", read from
+  your own copy.
+- **The little details**: the EA intro (if ffmpeg was installed when you ran the extractor), the loading screen with its "Reticulating Splines" messages, the family
+  info on the neighbourhood map, Sims with 3D bodies, and three zoom levels with four rotations.
+- **Cheats**: the PC cheat console with `rosebud`, `klapaucius`, `move_objects on` and more ([list](docs/CHEATS.md)).
+- **Safe saves**: saves use the original file formats, with a progress bar. If the power cuts out mid-save, your game
+  is repaired automatically on the next start.
+- **A 3D HOME Menu banner**: a swaying 3D "The Sims" logo, visible in stereoscopic 3D.
+
 ## Screenshots
 
 | Live mode | Create-A-Sim | Neighbourhood |
