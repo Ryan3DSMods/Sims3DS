@@ -1,0 +1,75 @@
+# Builds sims.3dsx + sims.cia with devkitPro and packs dist/Sims3DS-<version>.zip (tools/release/make_release.sh).
+#   - push a tag v1.0, v1.1, ...          -> builds and publishes the GitHub release with the zip attached
+#   - Actions tab > "Build release" > Run -> builds only; the zip is downloadable as a workflow artifact
+# No game data is involved anywhere: the zip holds only the engine, the extractor and the licences.
+name: Build release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version for the zip name (e.g. 1.0)'
+        required: false
+        default: 'test'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04          # Python 3.12 for the 3D banner (pycgfx)
+    env:
+      DEVKITPRO: /opt/devkitpro
+      DEVKITARM: /opt/devkitpro/devkitARM
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install devkitPro (3ds-dev)
+        run: |
+          wget -q https://apt.devkitpro.org/install-devkitpro-pacman
+          chmod +x install-devkitpro-pacman
+          yes | sudo ./install-devkitpro-pacman
+          sudo dkp-pacman -Syu --noconfirm
+          sudo dkp-pacman -S --needed --noconfirm 3ds-dev
+          echo "/opt/devkitpro/devkitARM/bin:/opt/devkitpro/tools/bin" >> "$GITHUB_PATH"
+
+      - name: Install makerom and bannertool
+        run: |
+          mkdir -p "$HOME/bin" dl
+          gh release download -R 3DSGuy/Project_CTR --pattern '*makerom*ubuntu*x86_64*.zip' -D dl/makerom
+          gh release download -R diasurgical/bannertool --pattern '*.zip' -D dl/bannertool
+          for z in dl/makerom/*.zip dl/bannertool/*.zip; do unzip -q -o "$z" -d "${z%.zip}"; done
+          cp "$(find dl/makerom -type f -name makerom | head -1)" "$HOME/bin/makerom"
+          cp "$(find dl/bannertool -type f -name bannertool -path '*linux*x86_64*' | head -1)" "$HOME/bin/bannertool"
+          chmod +x "$HOME/bin/makerom" "$HOME/bin/bannertool"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Check tools
+        run: |
+          arm-none-eabi-gcc --version | head -1
+          makerom 2>&1 | head -2 || true
+          bannertool 2>&1 | head -2 || true
+          python3 --version
+
+      - name: Build the release zip
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then V="${GITHUB_REF_NAME#v}"; else V="${{ github.event.inputs.version }}"; fi
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+          tools/release/make_release.sh "$V" 2>&1 | tee build.log
+          grep -q "cia: using the 3D banner" build.log || { echo "::error::3D banner step failed (flat banner used)"; exit 1; }
+          ls -la dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sims3DS-${{ env.VERSION }}
+          path: dist/Sims3DS-${{ env.VERSION }}.zip
+
+      - name: Publish the GitHub release
+        if: github.ref_type == 'tag'
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" --title "Sims3DS $VERSION" --notes-file .github/release-notes.md
+          gh release upload "$GITHUB_REF_NAME" "dist/Sims3DS-$VERSION.zip" --clobber
