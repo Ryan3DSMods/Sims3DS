@@ -69,6 +69,8 @@ jobs:
           tools/release/make_release.sh "$V" 2>&1 | tee build.log
           grep -q "cia: using the 3D banner" build.log || { echo "::error::3D banner step failed (flat banner used)"; exit 1; }
           ls -la dist/
+          list=$(unzip -l "dist/Sims3DS-$V.zip" | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::notice title=Sims3DS-$V.zip::$(grep -E 'cia: (memory|using)' build.log | tr '\n' ' ')%0A$list"
 
       - name: Show the end of the build log as an annotation (on failure)
         if: failure()
