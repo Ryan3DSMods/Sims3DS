@@ -31,10 +31,13 @@ jobs:
         run: |
           trap 'echo "::error::failed: $BASH_COMMAND"' ERR
           docker pull -q devkitpro/devkitarm:latest
-          id=$(docker create devkitpro/devkitarm:latest)
-          sudo docker cp "$id:/opt/devkitpro" /opt/
-          docker rm "$id" >/dev/null
+          sudo mkdir -p /opt/devkitpro
+          docker run --rm -v /opt/devkitpro:/out devkitpro/devkitarm:latest \
+            sh -c 'cp -a /opt/devkitpro/. /out/ 2>/tmp/cp.err || { cat /tmp/cp.err | tail -5; exit 1; }' 2>&1 | tee cp.log \
+            || { echo "::error::$(tail -5 cp.log | tr '\n' ' ')"; exit 1; }
           sudo chown -R "$USER" /opt/devkitpro
+          ls /opt/devkitpro /opt/devkitpro/devkitARM/bin | head -20
+          test -x /opt/devkitpro/devkitARM/bin/arm-none-eabi-g++ || { echo "::error::no compiler: $(ls /opt/devkitpro | tr '\n' ' ')"; exit 1; }
           echo "/opt/devkitpro/devkitARM/bin:/opt/devkitpro/tools/bin" >> "$GITHUB_PATH"
 
       - name: Install makerom and bannertool
