@@ -105,13 +105,26 @@ More help: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 - [Making a release](docs/RELEASING.md) (maintainers)
 - [Development log](docs/DEVELOPMENT_LOG.md) · [Porting notes](PORTING.md)
 
-## Credits and licence
+## Credits
 
-- Engine code: **MPL-2.0** ([LICENSE](LICENSE)) — a C++ translation of [FreeSims](https://github.com/francot514/FreeSims)
-  (francot514 and contributors) and [FreeSO](https://github.com/riperiperi/FreeSO) (riperiperi and contributors).
-- 3D logo banner: made from **"Sims game logo 3D" by [3DTwinkie](https://www.printables.com/@3DTwinkie)** on
-  Printables, licensed **CC BY-SA 4.0** ([assets/logo/](assets/logo/ATTRIBUTION.md)).
-- Everything else (fonts, libraries, tools): [CREDITS.md](CREDITS.md).
+- 3DS port by Ryan, [Ryan3DSMods on YouTube](https://www.youtube.com/@Ryan3DSMods)
+- [FreeSims](https://github.com/francot514/FreeSims) (francot514 and contributors) and
+  [FreeSO](https://github.com/riperiperi/FreeSO) (riperiperi and the FreeSO contributors), the open-source engines this
+  port is translated from
+- The Sims by Maxis / Electronic Arts
+- 3D logo banner: **"Sims game logo 3D" by [3DTwinkie](https://www.printables.com/@3DTwinkie)** on Printables,
+  licensed **CC BY-SA 4.0** ([assets/logo/](assets/logo/ATTRIBUTION.md))
+- [devkitPro](https://devkitpro.org/) and libctru, and [pycgfx](https://github.com/skyfloogle/pycgfx) for the 3D banner
+- Everything else (fonts, libraries, tools): [CREDITS.md](CREDITS.md)
+
+## How AI was used
+
+The 3DS port code was largely written with Claude, Anthropic's AI assistant. Ryan set the goal, supplied his own copy
+of the game, built the versions and tested them on his New 3DS.
+
+## Licence
+
+Engine code: **MPL-2.0** ([LICENSE](LICENSE)). The 3D logo model and the banner made from it: **CC BY-SA 4.0**.
 
 ## Legal
 

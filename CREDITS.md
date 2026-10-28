@@ -1,5 +1,9 @@
 # Credits and third-party notices
 
+3DS port by Ryan, [Ryan3DSMods on YouTube](https://www.youtube.com/@Ryan3DSMods). The port code was largely written with
+Claude, Anthropic's AI assistant; Ryan set the goal, supplied his own copy of the game, built the versions and tested them
+on his New 3DS.
+
 ## Engine (MPL-2.0)
 
 Sims3DS's engine is a C++ translation (a "Larger Work"/derivative under MPL-2.0 §3) of:
