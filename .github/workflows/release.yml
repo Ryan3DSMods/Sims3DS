@@ -27,19 +27,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install devkitPro (3ds-dev)
+      - name: Install devkitPro (3ds-dev, from the official devkitpro/devkitarm image)
         run: |
-          wget -q https://apt.devkitpro.org/install-devkitpro-pacman
-          chmod +x install-devkitpro-pacman
-          yes | sudo ./install-devkitpro-pacman
-          sudo dkp-pacman -Syu --noconfirm
-          sudo dkp-pacman -S --needed --noconfirm 3ds-dev
+          trap 'echo "::error::failed: $BASH_COMMAND"' ERR
+          docker pull -q devkitpro/devkitarm:latest
+          id=$(docker create devkitpro/devkitarm:latest)
+          sudo docker cp "$id:/opt/devkitpro" /opt/
+          docker rm "$id" >/dev/null
+          sudo chown -R "$USER" /opt/devkitpro
           echo "/opt/devkitpro/devkitARM/bin:/opt/devkitpro/tools/bin" >> "$GITHUB_PATH"
 
       - name: Install makerom and bannertool
         run: |
+          trap 'echo "::error::failed: $BASH_COMMAND"' ERR
           mkdir -p "$HOME/bin" dl
-          gh release download -R 3DSGuy/Project_CTR --pattern '*makerom*ubuntu*x86_64*.zip' -D dl/makerom
+          T=$(gh api repos/3DSGuy/Project_CTR/releases --jq '[.[] | select(any(.assets[]; .name | test("makerom.*ubuntu.*x86_64")))][0].tag_name')
+          echo "makerom release: $T"
+          gh release download "$T" -R 3DSGuy/Project_CTR --pattern '*makerom*ubuntu*x86_64*.zip' -D dl/makerom
           gh release download -R diasurgical/bannertool --pattern '*.zip' -D dl/bannertool
           for z in dl/makerom/*.zip dl/bannertool/*.zip; do unzip -q -o "$z" -d "${z%.zip}"; done
           cp "$(find dl/makerom -type f -name makerom | head -1)" "$HOME/bin/makerom"
@@ -58,9 +62,17 @@ jobs:
         run: |
           if [ "${GITHUB_REF_TYPE}" = "tag" ]; then V="${GITHUB_REF_NAME#v}"; else V="${{ github.event.inputs.version }}"; fi
           echo "VERSION=$V" >> "$GITHUB_ENV"
+          set -o pipefail
           tools/release/make_release.sh "$V" 2>&1 | tee build.log
           grep -q "cia: using the 3D banner" build.log || { echo "::error::3D banner step failed (flat banner used)"; exit 1; }
           ls -la dist/
+
+      - name: Show the end of the build log as an annotation (on failure)
+        if: failure()
+        run: |
+          [ -f build.log ] || exit 0
+          msg=$(tail -c 3500 build.log | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::error title=build.log tail::$msg"
 
       - uses: actions/upload-artifact@v4
         with:
