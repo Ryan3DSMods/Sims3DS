@@ -59,5 +59,5 @@ lower Sim speed).
 
 ## Screenshots
 
-No screenshots are included in this repository, because they would show the game's copyrighted art. You can make your
-own on the console (e.g. with Luma3DS's screenshot feature: L + Down + SELECT, then *Take screenshot*).
+See the [README](../README.md#screenshots) (pictures in `docs/screenshots/`, taken on a New 3DS). You can make your own
+on the console with Luma3DS's screenshot feature: L + Down + SELECT, then *Take screenshot*.

@@ -144,5 +144,5 @@ Copy the files of `~/sims_cache` to `sdmc:/3ds/sims/cache/`. Caches that do not 
   [src/simantics/README.md](../src/simantics/README.md), [TESTING.md](TESTING.md),
   [DEVELOPMENT_LOG.md](DEVELOPMENT_LOG.md).
 - Code comments: `TS1(sims)` marks Sims-1-specific additions, `FIX(sims)` fixes, `STUB(3ds)` stubs.
-- Contributions are welcome via pull requests. Never commit game files, screenshots of game art, or anything
+- Contributions are welcome via pull requests. Never commit game files or anything
   extracted from the game.

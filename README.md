@@ -9,6 +9,16 @@ the console: no streaming, no PC needed while you play.
 > **Unofficial fan project.** Not affiliated with, endorsed by or sponsored by Electronic Arts Inc. or Maxis.
 > "The Sims" is a trademark of Electronic Arts Inc. See [Legal](#legal).
 
+## Screenshots
+
+| Live mode | Create-A-Sim | Neighbourhood |
+|---|---|---|
+| ![Live mode: a Sim's pie menu at the fridge, with the needs panel on the bottom screen](docs/screenshots/live-mode.jpg) | ![Create-A-Sim with personality, head and body on the bottom screen](docs/screenshots/create-a-sim.jpg) | ![The neighbourhood: family info on top, the map on the touch screen](docs/screenshots/neighbourhood.jpg) |
+
+| On a New 3DS: loading screen | On a New 3DS: neighbourhood |
+|---|---|
+| ![The loading screen on a New 3DS](docs/screenshots/console-loading.jpg) | ![The neighbourhood on a New 3DS](docs/screenshots/console-neighbourhood.jpg) |
+
 ## What you need
 
 - A **New 3DS, New 3DS XL or New 2DS XL** with **custom firmware** (Luma3DS + FBI). Not set up yet? Follow
