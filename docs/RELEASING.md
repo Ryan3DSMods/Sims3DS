@@ -25,7 +25,15 @@ Never put game data, game audio (`banner_sound.wav`), screenshots of the game or
 release. `make release` always builds the CIA with the silent banner sound, even if you exported a banner sound for
 your own console.
 
-## One-time setup (Mac)
+## The easy way: GitHub Actions (no Mac needed)
+
+GitHub builds the zip for you with [.github/workflows/release.yml](../.github/workflows/release.yml):
+on GitHub open **Actions → Build release → Run workflow**, type the version (e.g. `1.1`), tick **publish** and press
+**Run**. About 5 minutes later release `v1.1` is on the Releases page with `Sims3DS-1.1.zip` attached (3D banner,
+124 MB memory mode, silent banner sound). Without **publish** the zip is only a download on the workflow run, which
+is handy for testing it on the console first. Pushing a tag `v1.1` does the same as a publish run.
+
+## Building it yourself: one-time setup (Mac)
 
 1. devkitPro with `3ds-dev` (`sudo dkp-pacman -S 3ds-dev`), see [BUILDING.md](BUILDING.md).
 2. `makerom` and `bannertool` in your `PATH` (e.g. copy both binaries to `/usr/local/bin`).
