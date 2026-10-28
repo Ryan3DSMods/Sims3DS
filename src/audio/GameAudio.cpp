@@ -62,6 +62,7 @@ void GameAudio::Shutdown() {
     _Ready = false;
     _ModeSet = false;
     _FileVoice = 0; // ADDED(sims)
+    _DeviceReleased = false;
 }
 
 void GameAudio::Update(double dtMs) {
@@ -219,6 +220,15 @@ bool GameAudio::FilePlaying() const {
 
 void GameAudio::SetSuspended(bool suspended) {
     if (_Backend) _Backend->SetSuspended(suspended);
+}
+
+void GameAudio::ReleaseDevice() { // FIX(sims) HOME crash
+    if (_Backend && !_DeviceReleased) { _Backend->Stop(); _DeviceReleased = true; }
+}
+
+void GameAudio::ReacquireDevice() { // FIX(sims) HOME crash
+    if (_Backend && _DeviceReleased && _Mixer) _Backend->Start(*_Mixer);
+    _DeviceReleased = false;
 }
 
 }

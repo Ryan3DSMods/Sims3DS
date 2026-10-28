@@ -189,9 +189,24 @@ static void PresentFrame(App& app) {
 static aptHookCookie g_aptCookie;
 static void OnAptEvent(APT_HookType hook, void*) {
     switch (hook) {
-    case APTHOOK_ONSUSPEND: case APTHOOK_ONSLEEP:
+    // FIX(sims) HOME crash: pressing HOME in-game made the HOME Menu abort (svcBreak in the "menu" process) with every
+    // banner and memory mode. Before the hand-over (this hook runs before libctru saves VRAM, transfers the screen and
+    // puts the DSP to sleep) the sound is shut down completely - mixing thread, NDSP, DSP component - and started
+    // fresh on the way back, which also asks again for the second-core CPU share the system resets while suspended.
+    // Sleep (lid) keeps the old pause: there the DSP is already asleep when ONSLEEP runs.
+    case APTHOOK_ONSUSPEND:
+        gspWaitForVBlank(); // let the last queued buffer swap take effect before the screen is handed over
+        printf("apt: suspend (HOME / applet) - releasing the sound device\n"); fflush(stdout);
+        simaudio::GameAudio::Get().ReleaseDevice();
+        printf("apt: sound device released\n"); fflush(stdout);
+        break;
+    case APTHOOK_ONRESTORE:
+        simaudio::GameAudio::Get().ReacquireDevice();
+        printf("apt: restored\n"); fflush(stdout);
+        break;
+    case APTHOOK_ONSLEEP:
         simaudio::GameAudio::Get().SetSuspended(true); fflush(stdout); break;
-    case APTHOOK_ONRESTORE: case APTHOOK_ONWAKEUP:
+    case APTHOOK_ONWAKEUP:
         simaudio::GameAudio::Get().SetSuspended(false); break;
     // FIX(sims) SAVE: closed from the HOME menu / power button. APT hooks run inside aptMainLoop() / aptExit() on the
     // main thread, and every save is a blocking call on that thread (files/SafeFile.h: .new written, flushed, closed,

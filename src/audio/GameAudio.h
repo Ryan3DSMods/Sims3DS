@@ -90,6 +90,11 @@ public:
     void LeaveLot();
     /// Pauses everything (HOME menu, sleep). The game's own pause is handled by the VM (VM::Update).
     void SetSuspended(bool suspended);
+    /// FIX(sims) HOME crash: give the sound device back completely while the HOME Menu runs (backend Stop: the mixing
+    /// thread ends, NDSP/DSP are shut down) and take it again on return (backend Start). The mixer keeps its voices,
+    /// so music and sounds simply continue.
+    void ReleaseDevice();
+    void ReacquireDevice();
 
     /// Log of every event played / note started (host tools); empty = off.
     std::function<void(const std::string&)> Log;
@@ -121,6 +126,7 @@ private:
     NeighbourhoodKind _Nhood = NeighbourhoodKind::Main;
     bool _Requesting = false;     // inside our own SetMusicMode
     int _FileVoice = 0;           // ADDED(sims): the PlayFile voice
+    bool _DeviceReleased = false; // FIX(sims) HOME crash: ReleaseDevice() stopped the backend
     std::string _LotMusicEvent;   // a station a lot object chose (Downtown / Vacation / Magic Town controllers)
 };
 
