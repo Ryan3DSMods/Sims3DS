@@ -263,7 +263,7 @@ the lots. The full control reference is in [src/app/README.md](src/app/README.md
 ## Optional: the 3D logo banner and banner sound
 
 `make cia` builds a 3D HOME Menu banner: a swaying 3D "The Sims" logo (hardware-tested on a New 3DS). It is made from
-the model **"Sims game logo 3D" by its creator on Printables**
+the model **"Sims game logo 3D" by [3DTwinkie](https://www.printables.com/@3DTwinkie) on Printables**
 (<https://www.printables.com/model/1630221-sims-game-logo-3d>), licensed **CC BY-SA 4.0**. The two STL files are in
 [`assets/logo/`](assets/logo/); the scene generated from them (`src/platform/3ds/banner3d/banner_scene*.gltf/.bin`,
 `banner_palette.png`) and the flat `banner.png` / `icon.png` rendered from it are adaptations under CC BY-SA 4.0 too —

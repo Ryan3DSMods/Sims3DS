@@ -27,7 +27,7 @@ marked in the code (`TS1(sims)`, `FIX(sims)`, `STUB(3ds)`) and listed in `src/*/
 
 | Asset | Licence |
 |---|---|
-| "Sims game logo 3D" by its creator on Printables — <https://www.printables.com/model/1630221-sims-game-logo-3d> (`assets/logo/*.stl`) and this project's adaptations of it (`src/platform/3ds/banner3d/banner_scene*`, `banner_palette.png`, `src/platform/3ds/banner.png`, `icon.png`) | CC BY-SA 4.0, see [assets/logo/ATTRIBUTION.md](assets/logo/ATTRIBUTION.md). "The Sims" logo design is a trademark of Electronic Arts. |
+| "Sims game logo 3D" by [3DTwinkie](https://www.printables.com/@3DTwinkie) on Printables — <https://www.printables.com/model/1630221-sims-game-logo-3d> (`assets/logo/*.stl`) and this project's adaptations of it (`src/platform/3ds/banner3d/banner_scene*`, `banner_palette.png`, `src/platform/3ds/banner.png`, `icon.png`) | CC BY-SA 4.0, see [assets/logo/ATTRIBUTION.md](assets/logo/ATTRIBUTION.md). "The Sims" logo design is a trademark of Electronic Arts. |
 | `src/platform/3ds/neutral/banner.png`, `icon.png` (original artwork, `tools/banner/make_flat_banner.py`) | MPL-2.0 |
 | `src/platform/3ds/banner3d/banner_silence.wav` (silence) | MPL-2.0 |
 

@@ -3,7 +3,7 @@
 # distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """Build the HOME-menu 3D banner scene (glTF 2.0) from an STL logo model.
 
-Default input: assets/logo/thesimslogo_red_backer.stl = "Sims game logo 3D" by its creator on Printables
+Default input: assets/logo/thesimslogo_red_backer.stl = "Sims game logo 3D" by 3DTwinkie (https://www.printables.com/@3DTwinkie) on Printables
 (https://www.printables.com/model/1630221-sims-game-logo-3d), CC BY-SA 4.0 - see assets/logo/ATTRIBUTION.md.
 The outputs (banner_scene*.gltf/.bin, banner_palette.png) are adaptations of that model and are CC BY-SA 4.0 too.
 The "The Sims" logo design itself is a trademark of Electronic Arts.

@@ -4,7 +4,7 @@
 If any step fails (no Python 3.12, no network on the first run, ...) the build falls back to the flat
 `src/platform/3ds/banner.png`; `make cia BANNER3D=0` forces the flat banner.
 
-The logo model and everything rendered from it are **CC BY-SA 4.0** — "Sims game logo 3D" by its creator on Printables
+The logo model and everything rendered from it are **CC BY-SA 4.0** — "Sims game logo 3D" by [3DTwinkie](https://www.printables.com/@3DTwinkie) on Printables
 (<https://www.printables.com/model/1630221-sims-game-logo-3d>); see [`assets/logo/ATTRIBUTION.md`](../../assets/logo/ATTRIBUTION.md).
 "The Sims" logo design is a trademark of Electronic Arts; build it for personal use on your own console.
 

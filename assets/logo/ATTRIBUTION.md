@@ -1,6 +1,6 @@
 # 3D logo model — attribution and licence
 
-**Source model:** "Sims game logo 3D" by its creator on Printables —
+**Source model:** "Sims game logo 3D" by [3DTwinkie](https://www.printables.com/@3DTwinkie) on Printables —
 <https://www.printables.com/model/1630221-sims-game-logo-3d> — licensed under
 **Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)**
 (<https://creativecommons.org/licenses/by-sa/4.0/>, full text in [`LICENSE`](LICENSE) next to this file).
