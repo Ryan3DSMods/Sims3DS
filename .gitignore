@@ -1,0 +1,56 @@
+# build output (note: src/app/build/ is SOURCE - the build-mode UI - so patterns are anchored)
+/build/
+/build-*/
+/src/platform/3ds/build/
+/src/files/build/
+/src/simantics/build/
+/src/files/files-selftest
+*.o
+*.d
+*.elf
+*.3dsx
+*.cia
+*.smdh
+*.map
+*.bnr
+*.cgfx
+
+# downloaded tools (pycgfx venv etc.)
+.tools/
+__pycache__/
+*.pyc
+
+# your own banner jingle exported from your game data (tools/banner3d/export_game_sound.py) - never commit it
+/src/platform/3ds/banner3d/banner_sound.wav
+
+# game data and anything made from it - never commit
+/GameData/
+/UserData*/
+/ExpansionPack*/
+/ExpansionShared/
+/Deluxe/
+/Downloads/
+/Music/
+/SoundData/
+/UIGraphics/
+/Template*/
+/Saves/
+/cache/
+/sims3ds_extract_work/
+*.far
+*.iff
+*.flr
+*.wll
+*.xa
+*.utk
+*.cmx
+*.skn
+*.bcf
+*.bmf
+*.cfp
+log.txt
+crash_dump_*.dmp
+
+# local helpers
+.DS_Store
+*.swp

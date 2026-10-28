@@ -1,0 +1,221 @@
+{
+ "asset": {
+  "version": "2.0",
+  "generator": "sims3ds tools/banner3d/make_scene.py"
+ },
+ "scene": 0,
+ "scenes": [
+  {
+   "name": "COMMON",
+   "nodes": [
+    0
+   ]
+  }
+ ],
+ "nodes": [
+  {
+   "name": "COMMON",
+   "children": [
+    1,
+    2
+   ]
+  },
+  {
+   "name": "world"
+  },
+  {
+   "name": "logo",
+   "mesh": 0,
+   "translation": [
+    0.0,
+    1.4,
+    0.0
+   ]
+  }
+ ],
+ "meshes": [
+  {
+   "name": "logo",
+   "primitives": [
+    {
+     "attributes": {
+      "POSITION": 0,
+      "NORMAL": 1,
+      "TEXCOORD_0": 2
+     },
+     "indices": 3,
+     "material": 0,
+     "mode": 4
+    }
+   ]
+  }
+ ],
+ "materials": [
+  {
+   "name": "mt_sims_logo",
+   "doubleSided": false,
+   "pbrMetallicRoughness": {
+    "baseColorTexture": {
+     "index": 0
+    },
+    "metallicFactor": 0.0,
+    "roughnessFactor": 1.0
+   }
+  }
+ ],
+ "textures": [
+  {
+   "sampler": 0,
+   "source": 0
+  }
+ ],
+ "images": [
+  {
+   "uri": "banner_palette.png",
+   "name": "COMMON1"
+  }
+ ],
+ "samplers": [
+  {
+   "magFilter": 9728,
+   "minFilter": 9728,
+   "wrapS": 33071,
+   "wrapT": 33071
+  }
+ ],
+ "accessors": [
+  {
+   "bufferView": 0,
+   "componentType": 5126,
+   "count": 7202,
+   "type": "VEC3",
+   "min": [
+    -13.600000381469727,
+    -7.647275924682617,
+    -2.364055633544922
+   ],
+   "max": [
+    13.600000381469727,
+    7.647275924682617,
+    2.364055633544922
+   ]
+  },
+  {
+   "bufferView": 1,
+   "componentType": 5126,
+   "count": 7202,
+   "type": "VEC3"
+  },
+  {
+   "bufferView": 2,
+   "componentType": 5126,
+   "count": 7202,
+   "type": "VEC2"
+  },
+  {
+   "bufferView": 3,
+   "componentType": 5123,
+   "count": 25524,
+   "type": "SCALAR"
+  },
+  {
+   "bufferView": 4,
+   "componentType": 5126,
+   "count": 151,
+   "type": "SCALAR",
+   "min": [
+    0.0
+   ],
+   "max": [
+    5.0
+   ]
+  },
+  {
+   "bufferView": 5,
+   "componentType": 5126,
+   "count": 151,
+   "type": "VEC4"
+  },
+  {
+   "bufferView": 6,
+   "componentType": 5126,
+   "count": 2,
+   "type": "SCALAR",
+   "min": [
+    0.0
+   ],
+   "max": [
+    5.0
+   ]
+  },
+  {
+   "bufferView": 7,
+   "componentType": 5126,
+   "count": 2,
+   "type": "VEC3"
+  },
+  {
+   "bufferView": 8,
+   "componentType": 5126,
+   "count": 2,
+   "type": "VEC3"
+  }
+ ],
+ "bufferViews": [
+  {
+   "buffer": 0,
+   "byteOffset": 0,
+   "byteLength": 86424,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 86424,
+   "byteLength": 86424,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 172848,
+   "byteLength": 57616,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 230464,
+   "byteLength": 51048,
+   "target": 34963
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 281512,
+   "byteLength": 604
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 282116,
+   "byteLength": 2416
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 284532,
+   "byteLength": 8
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 284540,
+   "byteLength": 24
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 284564,
+   "byteLength": 24
+  }
+ ],
+ "buffers": [
+  {
+   "uri": "banner_scene.bin",
+   "byteLength": 284588
+  }
+ ]
+}

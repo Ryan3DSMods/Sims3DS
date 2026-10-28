@@ -1,0 +1,59 @@
+# host simulator script used for the screenshots (src/tools/sim3ds_host.cpp)
+frames 2
+shot 01_house_chooser
+house 7
+frames 1
+shot 02_chooser_newbie_selected
+house 7
+frames 5
+shot 03_lot_newbie_family
+tapobj Refrigerator
+frames 1
+shot 04_pie_menu_fridge
+pick Have A Snack
+frames 1
+shot 05_snack_queued
+log
+record walk 6 40
+log
+button speed3
+record walk_fast 3 30
+log
+shot 06_bob_at_fridge
+tapobj Betty
+frames 1
+shot 07_pie_menu_betty
+pick Talk
+frames 1
+shot 08_pie_category_talk
+press B
+frames 1
+press B
+frames 1
+tap 40 60
+frames 1
+shot 09_go_here_pie
+press B
+frames 1
+testdialog
+shot 10_dialog
+press A
+frames 1
+press START
+frames 1
+shot 11_start_menu
+button resume
+stats on
+press R
+press UP
+frames 3
+shot 12_rotated_near_stats
+stats off
+press START
+button leave
+frames 2
+house 5
+house 5
+frames 5
+shot 13_goth_family
+log

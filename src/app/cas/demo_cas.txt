@@ -1,0 +1,77 @@
+# Create-A-Family demo for cas_host (src/tools/cas_host.cpp):
+#   cas_host <dataRoot> <outDir> script src/app/cas/demo_cas.txt
+# Builds the "Simmons" family (two adults and a child), saves it into <dataRoot>/UserData (or $CAS_USERDATA).
+seed 3
+frames 2
+shot cas_01_family_empty
+text Simmons
+button familyname
+# ---- Alex: adult male, Aries profile (5 8 6 3 3)
+button add
+frames 10
+shot cas_02_sim_new
+text Alex
+button firstname
+button male
+button led0_5
+button led1_8
+button led2_6
+button led3_3
+button led4_3
+button headnext
+button headnext
+button bodynext
+frames 20
+shot cas_03_sim_alex
+circle 1 0 15
+frames 5
+shot cas_04_sim_alex_turned
+text Alex grew up on a farm and still wakes up at dawn. He wants a big family and a bigger kitchen.
+button bio
+button led2_6
+frames 5
+shot cas_05_sim_alex_bio
+button done
+frames 5
+shot cas_06_family_one
+# ---- Maria: adult female, medium skin
+button add
+text Maria
+button firstname
+button female
+button medium
+button headnext
+button bodyprev
+button led0_8
+button led1_4
+button led2_2
+button led3_5
+button led4_6
+frames 20
+shot cas_07_sim_maria
+button done
+# ---- Kim: child, random look, personality left unfinished -> "More Personality!"
+button add
+text Kim
+button firstname
+button child
+button random
+frames 10
+button led4_1
+frames 10
+shot cas_08_sim_kim_child
+button done
+frames 2
+shot cas_09_more_personality
+button dlg0
+frames 10
+button member1
+frames 20
+shot cas_10_family_three
+button done
+frames 2
+shot cas_11_finished_dialog
+button dlg0
+frames 3
+expect done
+log

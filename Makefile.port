@@ -1,0 +1,59 @@
+# Build the translated FreeSims engine (files + simantics + content) and tools.
+CXX ?= g++
+CXXFLAGS ?= -std=c++17 -O1 -DST_FILES_REAL -Isrc -w -MMD -MP
+SRC := $(shell find src/files src/simantics src/content src/world src/vitaboy src/common src/hit src/audio -name '*.cpp' 2>/dev/null | grep -v -e selftest.cpp)
+OBJ := $(patsubst %.cpp,build-port/%.o,$(SRC))
+build-port/simrun: $(OBJ) build-port/src/tools/simrun.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+build-port/%.o: %.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+build-port/simshot: $(OBJ) build-port/src/tools/simshot.o
+	$(CXX) $(CXXFLAGS) $^ -o $@ -lz
+build-port/simrender: $(OBJ) build-port/src/tools/simrender.o
+	$(CXX) $(CXXFLAGS) $^ -o $@ -lz
+build-port/simlife: $(OBJ) build-port/src/tools/simlife.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+clean:
+	rm -rf build-port
+
+-include $(OBJ:.o=.d) build-port/src/tools/simrun.d build-port/src/tools/simlife.d build-port/src/tools/simshot.d build-port/src/tools/simrender.d
+# Vitaboy body renderer tool (host only): vitaboy + files are enough.
+VITABOY_SRC := $(shell find src/vitaboy src/files -name '*.cpp' 2>/dev/null | grep -v -e selftest.cpp)
+VITABOY_OBJ := $(patsubst %.cpp,build-port/%.o,$(VITABOY_SRC))
+build-port/simbody: $(VITABOY_OBJ) build-port/src/tools/simbody.o
+	$(CXX) $(CXXFLAGS) $^ -o $@ -lz
+-include build-port/src/tools/simbody.d
+
+# The 3DS app (src/app) on the host with scripted input: two screens composed into PNGs (see src/app/README.md).
+APP_SRC := $(shell find src/app -name '*.cpp' 2>/dev/null)
+APP_OBJ := $(patsubst %.cpp,build-port/%.o,$(APP_SRC))
+build-port/sim3ds_host: $(OBJ) $(APP_OBJ) build-port/src/tools/sim3ds_host.o build-port/src/tools/host_sdsim.o
+	$(CXX) $(CXXFLAGS) $^ -o $@ -lz
+-include $(APP_OBJ:.o=.d) build-port/src/tools/sim3ds_host.d
+# TS1(sims): expansion pack health check (see src/tools/simep.cpp)
+SIMEP_AUDIO_OBJ := $(patsubst %.cpp,build-port/%.o,$(filter-out $(SRC),$(wildcard src/audio/*.cpp)))
+build-port/simep: $(OBJ) $(SIMEP_AUDIO_OBJ) build-port/src/tools/simep.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+-include build-port/src/tools/simep.d
+
+# Sound engine tool (src/hit + src/audio): decode samples/music, play HIT events to WAV, sweep all events.
+build-port/simaudio: $(OBJ) build-port/src/tools/simaudio.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+-include build-port/src/tools/simaudio.d
+# Create-A-Family / Create-A-Sim host driver (src/app/cas, see src/app/cas/README.md).
+build-port/cas_host: $(OBJ) $(APP_OBJ) build-port/src/tools/cas_host.o
+	$(CXX) $(CXXFLAGS) $^ -o $@ -lz
+-include build-port/src/tools/cas_host.d
+# A lot played headless with sound capture + event log (src/tools/simsound.cpp).
+build-port/simsound: $(OBJ) $(APP_OBJ) build-port/src/tools/simsound.o
+	$(CXX) $(CXXFLAGS) $^ -o $@ -lz
+-include build-port/src/tools/simsound.d
+# TS1(sims): lot saving checks and round trips (src/tools/simsave.cpp, src/simantics/STUBS_save.md).
+build-port/simsave: $(OBJ) build-port/src/tools/simsave.o
+	$(CXX) $(CXXFLAGS) $^ -o $@ -lz
+-include build-port/src/tools/simsave.d
+# TS1(sims): prebuilds the SD card's cache/ folder on a PC (src/tools/simcache.cpp, src/app/README.md)
+build-port/simcache: $(OBJ) $(APP_OBJ) build-port/src/tools/simcache.o
+	$(CXX) $(CXXFLAGS) $^ -o $@ -lz
+-include build-port/src/tools/simcache.d
