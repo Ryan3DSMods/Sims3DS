@@ -93,6 +93,10 @@ jobs:
         if: github.ref_type == 'tag' || github.event.inputs.publish == 'true'
         run: |
           TAG="v$VERSION"
+          # re-publishing a version moves its tag to the commit that was just built
+          if [ "${GITHUB_REF_TYPE}" != "tag" ]; then
+            git tag -f "$TAG" "$GITHUB_SHA" && git push -f origin "refs/tags/$TAG"
+          fi
           gh release view "$TAG" >/dev/null 2>&1 || \
             gh release create "$TAG" --target "$GITHUB_SHA" --title "Sims3DS $VERSION" --notes-file .github/release-notes.md
           gh release upload "$TAG" "dist/Sims3DS-$VERSION.zip" --clobber
