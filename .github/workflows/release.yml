@@ -1,6 +1,7 @@
 # Builds sims.3dsx + sims.cia with devkitPro and packs dist/Sims3DS-<version>.zip (tools/release/make_release.sh).
 #   - push a tag v1.0, v1.1, ...          -> builds and publishes the GitHub release with the zip attached
-#   - Actions tab > "Build release" > Run -> builds only; the zip is downloadable as a workflow artifact
+#   - Actions tab > "Build release" > Run -> builds; the zip is downloadable as a workflow artifact, and with
+#     "publish" ticked it is also published as release v<version> (the tag is created on the current commit)
 # No game data is involved anywhere: the zip holds only the engine, the extractor and the licences.
 name: Build release
 
@@ -13,6 +14,10 @@ on:
         description: 'Version for the zip name (e.g. 1.0)'
         required: false
         default: 'test'
+      publish:
+        description: 'Publish it as GitHub release v<version>'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -85,8 +90,9 @@ jobs:
           path: dist/Sims3DS-${{ env.VERSION }}.zip
 
       - name: Publish the GitHub release
-        if: github.ref_type == 'tag'
+        if: github.ref_type == 'tag' || github.event.inputs.publish == 'true'
         run: |
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
-            gh release create "$GITHUB_REF_NAME" --title "Sims3DS $VERSION" --notes-file .github/release-notes.md
-          gh release upload "$GITHUB_REF_NAME" "dist/Sims3DS-$VERSION.zip" --clobber
+          TAG="v$VERSION"
+          gh release view "$TAG" >/dev/null 2>&1 || \
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "Sims3DS $VERSION" --notes-file .github/release-notes.md
+          gh release upload "$TAG" "dist/Sims3DS-$VERSION.zip" --clobber
