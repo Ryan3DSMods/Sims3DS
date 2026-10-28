@@ -27,7 +27,7 @@ The generated scene is committed, so you only need `make_scene.py` to change it:
     python3 tools/banner3d/preview.py [scene.gltf] [out dir]       # software preview -> build/banner3d_preview/*.png
     python3 tools/banner3d/flat_banner.py                          # re-render the flat banner.png + icon.png
     python3 tools/banner3d/cgfx_parse.py [--summary] file.cgfx     # independent CGFX structure check
-    (make_scene.py / preview.py / flat_banner.py need numpy, Pillow and scipy)
+    (make_scene.py / preview.py / flat_banner.py need numpy, Pillow and scipy; make_scene.py also fast-simplification)
 
 ## Settings that work on hardware (v16)
 
@@ -41,7 +41,7 @@ The generated scene is committed, so you only need `make_scene.py` to change it:
   variant **crashed the HOME Menu** — keep the palette approach.
 - Matte material (convert_banner3d.py removes pycgfx's specular stage), one CMDL named COMMON, no skinning or bone
   streams, CGFX < 512 KiB.
-- Knobs in make_scene.py: `SWAY_DEG`, `SWAY_PERIOD`, `SWAY_FPS`, `LINE_*`, `REFINE_MM`, `ISO_TOL_MM`, `TARGET_WIDTH`
+- Knobs in make_scene.py: `SWAY_DEG`, `SWAY_PERIOD`, `SWAY_FPS`, `LINE_*`, `REFINE_MM`, `ISO_TOL_MM`, `TARGET_WIDTH`, `DECIMATE`, `DROP_HIDDEN`, `MAX_TRIANGLES` (keep the scene light: 8508 triangles is suspected of crashing the HOME Menu when HOME is pressed in-game; now 4911)
   (27.2 units), `WORLD_Y` (1.4), `LINE_OVERRIDES`, `NO_LINE_MAX_H`, `CREASE_DEG`, colours. HOME Menu camera (pycgfx
   banner-camera.gltf): (0, 1, 44.786) looking -Z, yfov 30°, 5:3, znear 26.5 -> at z = 0 the top screen spans
   x -20..20, y -11..13.

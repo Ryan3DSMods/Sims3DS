@@ -59,8 +59,16 @@ UV_MIN, UV_MAX = 1.0 / 32, 31.0 / 32           # stay inside the outermost texel
 TEX_W, TEX_H = 256, 128  # resolution of the (internal, not exported) front-view outline field
 TEX_MARGIN = 4
 TEX_SS = 4               # supersampling of that field (0.16 mm per sample)
-REFINE_MM = 1.2          # never split edges shorter than this
-ISO_TOL_MM = 0.2        # split an edge crossing the outline if the field deviates this much from linear on it
+REFINE_MM = 2.4          # never split edges shorter than this (v16: 1.2; fewer triangles, see DECIMATE)
+# FIX(sims) HOME crash (suspected cause): with the full model (8508 triangles / 7202 vertices) the HOME Menu aborted (svcBreak in its
+# "menu" process) when HOME was pressed in-game: with an application running, the HOME Menu has much less memory for
+# the banner. The scene is made lighter without a visible change: faces that can never face the camera within the
+# +-SWAY_DEG sway (the back of the model) are dropped, and the mesh is decimated (quadric, visually lossless:
+# 0.3 keeps the house window, 0.55 lost it) before the outline is cut in. Result: 4911 triangles, 4558 vertices.
+DECIMATE = 0.3           # quadric decimation, fraction of the STL's triangles removed (0.3 = visually lossless; 0.55 lost the house window)
+DROP_HIDDEN = True       # drop triangles that never face the camera
+MAX_TRIANGLES = 5000     # hard budget for the final scene (v16 had 8508 and crashed the HOME Menu on HOME in-game)
+ISO_TOL_MM = 0.35        # split an edge crossing the outline if the field deviates this much from linear on it
 LINE_MM = 1.9            # thin red outline along each letter's outer contour (~2.2 % of the big S's height)
 LINE_OVERRIDES = [((95.0, 130.0, 60.0), 2.8)]   # (centre-x range mm, min height mm) -> width: the M
 NO_LINE_MAX_H = 20.0     # single (ring-less) parts lower than this = "The": light red outline instead
@@ -89,6 +97,27 @@ def load_stl(path):
         raise SystemExit('%s: not a binary STL (size mismatch)' % path)
     a = np.frombuffer(d[84:84 + 50 * n], dtype=np.dtype([('n', '<3f4'), ('v', '<9f4'), ('a', '<u2')]))
     return a['v'].reshape(-1, 3, 3).astype(np.float64)
+
+
+def lighten(tris_mm):
+    """Decimate (DECIMATE) and drop never-visible faces (DROP_HIDDEN). -> (tris, info)"""
+    info = dict(stl_triangles=len(tris_mm))
+    if DECIMATE > 0:
+        import fast_simplification
+        q = np.round(tris_mm.reshape(-1, 3) * 1e4).astype(np.int64)
+        u, inv = np.unique(q, axis=0, return_inverse=True)
+        p2, f2 = fast_simplification.simplify((u / 1e4).astype(np.float32), inv.reshape(-1, 3).astype(np.int32),
+                                              target_reduction=DECIMATE, agg=7)
+        tris_mm = np.asarray(p2, np.float64)[np.asarray(f2)]
+        info['decimated_triangles'] = len(tris_mm)
+    if DROP_HIDDEN:
+        fn = np.cross(tris_mm[:, 1] - tris_mm[:, 0], tris_mm[:, 2] - tris_mm[:, 0])
+        fn /= np.linalg.norm(fn, axis=1, keepdims=True) + 1e-12
+        th = np.radians(SWAY_DEG + 5.0)
+        vis = fn[:, 2] * np.cos(th) + np.abs(fn[:, 0]) * np.sin(th) + np.abs(fn[:, 1]) * 0.2
+        tris_mm = tris_mm[vis > -0.02]
+        info['visible_triangles'] = len(tris_mm)
+    return tris_mm, info
 
 
 def build_logo(tris_mm):
@@ -621,9 +650,9 @@ def main():
     if a.no_outline:
         OUTLINE = False
     os.makedirs(a.out, exist_ok=True)
-    if not os.path.exists(a.stl):
-        raise SystemExit('STL not found: %s\nExpected the model in assets/logo/ (see assets/logo/ATTRIBUTION.md) or pass --stl <file>.' % a.stl)
-    pos, nrm, uvs, idx, info = build_logo(load_stl(a.stl))
+    tris, linfo = lighten(load_stl(a.stl))
+    pos, nrm, uvs, idx, info = build_logo(tris)
+    info.update(linfo)
     make_palette(os.path.join(a.out, 'banner_palette.png'), the_rows=OUTLINE)
     if OUTLINE:
         info['outline_parts_kind_h_mm_line_mm'] = sorted(make_rim_texture.groups.values(), key=lambda x: -x[1])
@@ -639,7 +668,9 @@ def main():
                     SWAY_DEG, SWAY_PERIOD, SWAY_FPS, int(round(SWAY_PERIOD * SWAY_FPS)) + 1),
                 billboard_parent=a.billboard_parent)
     print(json.dumps(info, indent=1))
-    if info['open_edges']:
+    if info['triangles'] > MAX_TRIANGLES:
+        raise SystemExit('too many triangles for the HOME Menu: %d > %d' % (info['triangles'], MAX_TRIANGLES))
+    if info['open_edges'] and not DROP_HIDDEN:
         print('WARNING: mesh is not closed (%d open/non-manifold edges)' % info['open_edges'])
     if est > 0x7C000:
         print('WARNING: estimated CGFX size is close to / above the 512 KiB HOME Menu limit')

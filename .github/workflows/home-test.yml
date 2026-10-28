@@ -1,0 +1,75 @@
+# HOME-button test builds (manual): two CIAs that install NEXT to the normal one (own title IDs and names), to find
+# out what makes the HOME Menu crash when HOME is pressed in-game:
+#   sims_test_A_flat.cia  - "sims3ds test A": flat HOME banner
+#   sims_test_B_3d.cia    - "sims3ds test B": the current (light) 3D banner
+# Both use the silent banner sound and the 124 MB memory mode. Download: the run's "Sims3DS-HOME-test" artifact.
+name: HOME button test builds
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    env:
+      DEVKITPRO: /opt/devkitpro
+      DEVKITARM: /opt/devkitpro/devkitARM
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install devkitPro (3ds-dev, from the official devkitpro/devkitarm image)
+        run: |
+          trap 'echo "::error::failed: $BASH_COMMAND"' ERR
+          docker pull -q devkitpro/devkitarm:latest
+          sudo mkdir -p /opt/devkitpro
+          docker run --rm -v /opt/devkitpro:/out devkitpro/devkitarm:latest \
+            sh -c 'cp -a /opt/devkitpro/. /out/ 2>/tmp/cp.err || { cat /tmp/cp.err | tail -5; exit 1; }' 2>&1 | tee cp.log \
+            || { echo "::error::$(tail -5 cp.log | tr '\n' ' ')"; exit 1; }
+          sudo chown -R "$USER" /opt/devkitpro
+          ls /opt/devkitpro /opt/devkitpro/devkitARM/bin | head -20
+          test -x /opt/devkitpro/devkitARM/bin/arm-none-eabi-g++ || { echo "::error::no compiler: $(ls /opt/devkitpro | tr '\n' ' ')"; exit 1; }
+          echo "/opt/devkitpro/devkitARM/bin:/opt/devkitpro/tools/bin" >> "$GITHUB_PATH"
+
+      - name: Install makerom and bannertool
+        run: |
+          trap 'echo "::error::failed: $BASH_COMMAND"' ERR
+          mkdir -p "$HOME/bin" dl
+          T=$(gh api repos/3DSGuy/Project_CTR/releases --jq '[.[] | select(any(.assets[]; .name | test("makerom.*ubuntu.*x86_64")))][0].tag_name')
+          echo "makerom release: $T"
+          gh release download "$T" -R 3DSGuy/Project_CTR --pattern '*makerom*ubuntu*x86_64*.zip' -D dl/makerom
+          gh release download -R diasurgical/bannertool --pattern '*.zip' -D dl/bannertool
+          for z in dl/makerom/*.zip dl/bannertool/*.zip; do unzip -q -o "$z" -d "${z%.zip}"; done
+          cp "$(find dl/makerom -type f -name makerom | head -1)" "$HOME/bin/makerom"
+          cp "$(find dl/bannertool -type f -name bannertool -path '*linux*x86_64*' | head -1)" "$HOME/bin/bannertool"
+          chmod +x "$HOME/bin/makerom" "$HOME/bin/bannertool"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Build the test CIAs
+        working-directory: src/platform/3ds
+        run: |
+          trap 'echo "::error::failed: $BASH_COMMAND"' ERR
+          set -o pipefail
+          mkdir -p ../../../out
+          make -j4 2>&1 | tail -3
+          variant() {   # id letter, banner3d flag, file name
+            sed -i "s/^  UniqueId  *: .*/  UniqueId                : 0xF57$1/" sims.rsf
+            sed -i "s/makesmdh -s \"sims3ds[^\"]*\"/makesmdh -s \"sims3ds test $1\"/" banner3d/make_banner3d.sh
+            rm -f sims.smdh build/sims_cia.smdh build/banner.bnr
+            make APP_TITLE="sims3ds test $1" 2>&1 | tail -2
+            make cia BANNER3D=$2 BANNER_AUDIO=$PWD/banner3d/banner_silence.wav 2>&1 | tee cia_$1.log
+            if [ "$2" = 1 ]; then grep -q "using the 3D banner" cia_$1.log; fi
+            cp sims.cia "../../../out/$3"
+          }
+          variant 1A 0 sims_test_A_flat.cia
+          variant 1B 1 sims_test_B_3d.cia
+          ls -la ../../../out
+          echo "::notice title=test builds::$(ls ../../../out | tr '\n' ' ')"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sims3DS-HOME-test
+          path: out/*.cia
