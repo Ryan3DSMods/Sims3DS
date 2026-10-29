@@ -1,5 +1,7 @@
 # Sims3DS — The Sims (2000) on the New Nintendo 3DS
 
+By Ryan · [YouTube: Ryan3DSMods](https://www.youtube.com/@Ryan3DSMods) · [TikTok: @ryan3dsmods](https://www.tiktok.com/@ryan3dsmods)
+
 Play **The Sims Complete Collection** — the base game and all 7 expansion packs — on your New 3DS. It runs right on
 the console: no streaming, no PC needed while you play.
 
