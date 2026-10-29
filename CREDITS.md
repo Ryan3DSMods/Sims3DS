@@ -1,6 +1,6 @@
 # Credits and third-party notices
 
-3DS port by Ryan, [Ryan3DSMods on YouTube](https://www.youtube.com/@Ryan3DSMods). The port code was largely written with
+3DS port by Ryan: [Ryan3DSMods on YouTube](https://www.youtube.com/@Ryan3DSMods) and [@ryan3dsmods on TikTok](https://www.tiktok.com/@ryan3dsmods). The port code was largely written with
 Claude, Anthropic's AI assistant; Ryan set the goal, supplied his own copy of the game, built the versions and tested them
 on his New 3DS.
 

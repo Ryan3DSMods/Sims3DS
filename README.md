@@ -129,7 +129,7 @@ More help: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
 ## Credits
 
-- 3DS port by Ryan, [Ryan3DSMods on YouTube](https://www.youtube.com/@Ryan3DSMods)
+- 3DS port by Ryan: [Ryan3DSMods on YouTube](https://www.youtube.com/@Ryan3DSMods) and [@ryan3dsmods on TikTok](https://www.tiktok.com/@ryan3dsmods)
 - [FreeSims](https://github.com/francot514/FreeSims) (francot514 and contributors) and
   [FreeSO](https://github.com/riperiperi/FreeSO) (riperiperi and the FreeSO contributors), the open-source engines this
   port is translated from
