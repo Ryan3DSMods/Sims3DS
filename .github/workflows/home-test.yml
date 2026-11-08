@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -73,3 +73,11 @@ jobs:
         with:
           name: Sims3DS-HOME-test
           path: out/*.cia
+
+      - name: Also put the CIAs on the home-test-builds branch (so they can be fetched with git)
+        run: |
+          cd out
+          git init -q -b home-test-builds
+          git config user.name "github-actions"; git config user.email "github-actions@users.noreply.github.com"
+          git add *.cia && git commit -q -m "HOME test builds from ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" home-test-builds
