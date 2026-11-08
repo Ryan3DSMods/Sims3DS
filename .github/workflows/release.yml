@@ -21,6 +21,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   build:
@@ -100,3 +101,7 @@ jobs:
           gh release view "$TAG" >/dev/null 2>&1 || \
             gh release create "$TAG" --target "$GITHUB_SHA" --title "Sims3DS $VERSION" --notes-file .github/release-notes.md
           gh release upload "$TAG" "dist/Sims3DS-$VERSION.zip" --clobber
+
+      - name: Update the web builder with this release
+        if: github.ref_type == 'tag' || github.event.inputs.publish == 'true'
+        run: gh workflow run pages.yml --ref main

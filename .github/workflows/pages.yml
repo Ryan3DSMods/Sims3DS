@@ -1,0 +1,48 @@
+# Publishes the web builder (web/) on GitHub Pages: https://ryan3dsmods.github.io/Sims3DS/
+# The app files it writes to the SD card (sims.cia, sims.3dsx) are taken from the latest release, so the page always
+# hands out the released build. Runs on changes to web/, after every published release (release.yml starts it) and
+# by hand (Actions > Deploy web builder > Run workflow).
+name: Deploy web builder
+
+on:
+  push:
+    branches: [main]
+    paths: ['web/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add the released app (latest release)
+        run: |
+          mkdir -p web/dist rel
+          TAG=$(gh release view --json tagName --jq .tagName)
+          gh release download "$TAG" --pattern 'Sims3DS-*.zip' -D rel
+          unzip -q rel/Sims3DS-*.zip -d rel/x
+          cp rel/x/cia/sims.cia rel/x/3ds/sims/sims.3dsx rel/x/3ds/sims/README-on-SD.txt web/dist/
+          echo "${TAG#v}" > web/dist/version.txt
+          ls -la web/dist
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -58,3 +58,4 @@ crash_dump_*.dmp
 # release zips (tools/release/make_release.sh)
 /dist/
 .venv/
+web/dist/

@@ -54,6 +54,13 @@ the console: no streaming, no PC needed while you play.
 
 ## Install in 4 steps
 
+> **Easiest: the [web builder](https://ryan3dsmods.github.io/Sims3DS/).** Open it in Chrome or Edge, pick your own
+> four discs (or your installed game) and your SD card. It unpacks everything in your browser, nothing is uploaded,
+> and writes the game files, the app and the intro onto the card in about 3–5 minutes. Then go straight to step 4.
+> Other browsers get one zip to unzip onto the card.
+
+Or do it with the download:
+
 1. **Download** the latest `Sims3DS-<version>.zip` from the
    [Releases page](https://github.com/Ryan3DSMods/Sims3DS/releases/latest) and unzip it.
 2. **Get your game files:** open the `extractor` folder and double-click **`extract.command`** (Mac) or

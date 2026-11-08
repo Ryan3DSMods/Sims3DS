@@ -52,3 +52,11 @@ marked in the code (`TS1(sims)`, `FIX(sims)`, `STUB(3ds)`) and listed in `src/*/
 
 The Sims, its expansion packs and all their content are © Electronic Arts Inc. Nothing of the game is included; the
 engine reads the data from the player's own copy at runtime.
+
+## Web builder (web/)
+
+- **pako** 2.1.0 — <https://github.com/nodeca/pako> — raw inflate. MIT and Zlib licences (`web/vendor/pako.LICENSE`).
+- **ffmpeg.wasm** — <https://github.com/ffmpegwasm/ffmpeg.wasm> — the @ffmpeg/ffmpeg 0.12.10 wrapper (MIT,
+  `web/vendor/ffmpeg/LICENSE`); the FFmpeg core is loaded from jsDelivr at runtime, only for the optional intro step.
+- The LZMA decoder follows the LZMA specification by Igor Pavlov (public domain); the cabinet reader follows
+  **unshield** by David Eriksson and contributors (<https://github.com/twogood/unshield>, MIT).

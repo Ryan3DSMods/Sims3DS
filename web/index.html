@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sims3DS Builder</title>
+<meta name="description" content="Turn your own copy of The Sims Complete Collection into a ready-to-play SD card for the New 3DS, right in your browser.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="brand"><span class="gem" aria-hidden="true"></span><span>Sims3DS Builder</span><span class="ver" id="ver"></span></div>
+    <h1>Your copy of The Sims,<br>ready for your New 3DS.</h1>
+    <p class="lead">Pick your own discs or installed game. The builder unpacks them and puts everything on your SD card:
+      the game files, the app and the intro. It all happens here in your browser, and nothing is uploaded.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card" id="s1">
+    <div class="step"><span>1</span><h2>Choose your game</h2></div>
+    <div class="choices">
+      <label class="choice">
+        <input type="file" id="discs" multiple accept=".7z,.bin,.iso,.mdf,.img">
+        <strong>Disc images</strong>
+        <small>Your 4 Complete Collection discs as <code>.7z</code>, <code>.bin</code>, <code>.iso</code> or <code>.mdf</code>. Select all of them at once.</small>
+      </label>
+      <label class="choice">
+        <input type="file" id="folder" webkitdirectory directory>
+        <strong>Installed game folder</strong>
+        <small>The folder The Sims is installed in on your PC (with <code>GameData</code> and <code>UserData</code>), or a copied disc folder.</small>
+      </label>
+    </div>
+    <div id="picked" class="picked" hidden></div>
+  </section>
+
+  <section class="card" id="s2">
+    <div class="step"><span>2</span><h2>Where should it go?</h2></div>
+    <div class="outs">
+      <label class="out" id="outDirLabel">
+        <input type="radio" name="out" value="dir" id="outDir">
+        <span><strong>Straight onto my SD card</strong><small>Put the 3DS SD card in your computer and pick its drive. Works in Chrome and Edge.</small></span>
+      </label>
+      <label class="out">
+        <input type="radio" name="out" value="zip" id="outZip">
+        <span><strong>Download one zip</strong><small>About 3 GB. Unzip it onto the root of your SD card afterwards. Needs about 6.5 GB free while it's made.</small></span>
+      </label>
+    </div>
+    <div id="sdInfo" class="note" hidden></div>
+    <details class="opts">
+      <summary>Options</summary>
+      <label><input type="checkbox" id="optIntro" checked> Convert the EA intro video (downloads a 31&nbsp;MB video converter once)</label>
+      <label><input type="checkbox" id="optVerify" checked> Check every file against the disc's checksums (recommended, a little slower)</label>
+    </details>
+  </section>
+
+  <section class="card" id="s3">
+    <div class="step"><span>3</span><h2>Build</h2></div>
+    <button id="start" class="go" disabled>Build my SD card</button>
+    <p id="why" class="hint">Choose your game first.</p>
+    <div id="run" hidden>
+      <div class="bar"><div id="fill"></div></div>
+      <div class="stats"><span id="phase">Starting...</span><span id="eta"></span></div>
+      <p class="hint">Keep this tab open. It takes about 3 to 10 minutes, depending on your computer and SD card.</p>
+      <details class="log"><summary>Details</summary><pre id="log"></pre></details>
+    </div>
+    <div id="done" hidden></div>
+    <div id="err" class="err" hidden></div>
+  </section>
+
+  <section class="card faq">
+    <h2>Good to know</h2>
+    <ul>
+      <li><strong>What you need:</strong> a New 3DS, New 3DS XL or New 2DS XL with custom firmware (Luma3DS and FBI; see <a href="https://3ds.hacks.guide">3ds.hacks.guide</a>) and your own The Sims Complete Collection.</li>
+      <li><strong>What ends up on the card:</strong> <code>3ds/sims/</code> (the game files from your copy and <code>sims.3dsx</code>) and <code>cia/sims.cia</code>. The files contain your game, so keep them for yourself and don't share them.</li>
+      <li><strong>Then:</strong> on the 3DS open FBI, then SD, <code>cia</code>, <code>sims.cia</code>, Install CIA. Start sims3ds from the HOME Menu. The first start takes 1–2 minutes.</li>
+      <li><strong>Saves are safe:</strong> running the builder again onto the same card keeps your <code>Saves</code> folder.</li>
+      <li><strong>Prefer a script?</strong> The <a href="https://github.com/Ryan3DSMods/Sims3DS#install-in-4-steps">extractor in the release zip</a> does the same on your computer.</li>
+    </ul>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <p>Sims3DS by Ryan: <a href="https://github.com/Ryan3DSMods/Sims3DS">GitHub</a> · <a href="https://www.youtube.com/@Ryan3DSMods">YouTube</a> · <a href="https://www.tiktok.com/@ryan3dsmods">TikTok</a></p>
+  <p class="small">An unofficial, non-commercial fan project, not affiliated with Electronic Arts or Maxis. "The Sims" is a trademark of Electronic Arts Inc. No game files are hosted here: everything comes from your own copy. The intro converter is <a href="https://ffmpegwasm.netlify.app/">ffmpeg.wasm</a>, loaded from jsDelivr only if you tick that option.</p>
+</footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>
