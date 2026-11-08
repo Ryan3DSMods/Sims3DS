@@ -22,6 +22,8 @@ public:
     void Stop() override;
     void SetSuspended(bool suspended) override;
     const char* Name() const override { return "ndsp"; }
+    /// HOME-crash diagnosis (hold R at start): run the mixing thread on core 0 and never touch the core-1 CPU limit.
+    static bool ForceCore0;
     /// ADDED(sims): a new voice goes into the next buffer freed (0..1 buffer away) behind the 3 still queued.
     double LatencyMs() const override { return (kBuffers - 0.5) * kFrames * 1000.0 / (_Rate > 0 ? _Rate : 32728); }
 

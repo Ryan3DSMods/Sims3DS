@@ -51,6 +51,8 @@ void AudioThread(void*) {
 }
 } // namespace
 
+bool NdspBackend::ForceCore0 = false;
+
 bool NdspBackend::Start(AudioMixer& mixer) {
     if (g_Ndsp) return true;
     if (R_FAILED(ndspInit())) {
@@ -87,8 +89,8 @@ bool NdspBackend::Start(AudioMixer& mixer) {
     g_Run = true;
     bool isNew = false;
     APT_CheckNew3DS(&isNew);
-    if (isNew) g_Thread = threadCreate(AudioThread, nullptr, 32 * 1024, prio - 1, 2, false);
-    if (g_Thread == nullptr) {
+    if (isNew && !ForceCore0) g_Thread = threadCreate(AudioThread, nullptr, 32 * 1024, prio - 1, 2, false);
+    if (g_Thread == nullptr && !ForceCore0) {
         APT_SetAppCpuTimeLimit(30);
         g_Thread = threadCreate(AudioThread, nullptr, 32 * 1024, prio - 1, 1, false);
     }

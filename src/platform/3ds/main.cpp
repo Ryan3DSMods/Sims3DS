@@ -202,17 +202,53 @@ static void OnAptEvent(APT_HookType hook, void*) {
     }
 }
 
+// HOME-crash diagnosis. Pressing HOME in-game makes the HOME Menu abort (svcBreak in the "menu" process, identical
+// dumps with the flat and the 3D banner, 124 MB and 96 MB modes, and with the sound shut down on suspend). Buttons held
+// while the game starts switch parts off so the culprit can be found on the console:
+//   Y      bare app: only a text screen and aptMainLoop (nothing of the game) -> the CIA/RSF itself?
+//   L      the whole game without sound (no NDSP, no mixing thread)
+//   R      sound on, but the mixing thread on core 0 (no core-2 thread, no APT_SetAppCpuTimeLimit)
+//   X      no New 3DS speed-up (268 MHz, no L2 cache)
+//   SELECT the SD-card timing hook (sdhook) off
+static u32 g_DiagKeys = 0;
+
+static int RunBareHomeTest() {
+    for (int i = 0; i < 2; i++) { // black top screen (both buffers)
+        u16 w, h;
+        memset(gfxGetFramebuffer(GFX_TOP, GFX_LEFT, &w, &h), 0, (size_t)w * h * 3);
+        gfxSwapBuffers();
+    }
+    consoleInit(GFX_BOTTOM, nullptr);
+    printf("\n  sims3ds - HOME button test\n\n");
+    printf("  Bare app: nothing of the game is\n  running (no sound, no SD access).\n\n");
+    printf("  Press HOME now, then come back.\n\n");
+    printf("  If the HOME Menu does not crash,\n  the problem is in the game code.\n\n");
+    printf("  START: quit\n\n");
+    while (aptMainLoop()) {
+        hidScanInput();
+        if (hidKeysDown() & KEY_START) break;
+        gspWaitForVBlank();
+        gfxFlushBuffers();
+        gfxSwapBuffers();
+    }
+    gfxExit();
+    return 0;
+}
+
 int main(int argc, char** argv) {
     (void)argc; (void)argv;
-    osSetSpeedupEnable(true); // New 3DS: 804 MHz + L2 cache (no effect on the old 3DS)
+    hidScanInput();
+    g_DiagKeys = hidKeysHeld();
+    if (!(g_DiagKeys & KEY_X)) osSetSpeedupEnable(true); // New 3DS: 804 MHz + L2 cache (no effect on the old 3DS)
     gfxInit(GSP_BGR8_OES, GSP_BGR8_OES, false);
     gfxSet3D(false);
+    if (g_DiagKeys & KEY_Y) return RunBareHomeTest();
     bool isNew3DS = false;
     APT_CheckNew3DS(&isNew3DS);
     aptHook(&g_aptCookie, OnAptEvent, nullptr);
     // New 3DS ZL/ZR/C-stick: libctru's hidInit starts ir:rst itself and merges ZL/ZR into hidKeysHeld()
 
-    sdhook::Install(); // TS1(sims) hardware pass: SD operations counted + timed for log.txt
+    if (!(g_DiagKeys & KEY_SELECT)) sdhook::Install(); // TS1(sims) hardware pass: SD operations counted + timed for log.txt
     mkdir(DATA_ROOT, 0777);
     mkdir(CACHE_DIR, 0777);
     // optional log: create an empty file "debug" next to the data to get stdout in log.txt
@@ -233,7 +269,12 @@ int main(int argc, char** argv) {
         simaudio::GameAudio::Config acfg;
         acfg.DataRoot = DATA_ROOT;
         acfg.OutputRate = 32728;
-        if (simaudio::GameAudio::Get().Init(acfg))
+        simaudio::NdspBackend::ForceCore0 = (g_DiagKeys & KEY_R) != 0;
+        if (g_DiagKeys)
+            printf("HOME test: keys held at start %08lx:%s%s%s%s\n", (unsigned long)g_DiagKeys, (g_DiagKeys & KEY_L) ? " no-sound" : "",
+                   (g_DiagKeys & KEY_R) ? " sound-on-core0" : "", (g_DiagKeys & KEY_X) ? " no-speedup" : "",
+                   (g_DiagKeys & KEY_SELECT) ? " no-sdhook" : "");
+        if (!(g_DiagKeys & KEY_L) && simaudio::GameAudio::Get().Init(acfg))
             simaudio::GameAudio::Get().SetBackend(std::unique_ptr<simaudio::AudioBackend>(new simaudio::NdspBackend()));
     }
 
